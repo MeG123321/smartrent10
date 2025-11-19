@@ -21,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['user_role'] = $user['role'];
 
-            // log aktywności
             require_once 'includes/admin_functions.php';
             admin_log_activity($pdo, $user['id'], 'Logowanie', 'Zalogowano użytkownika: ' . $user['email']);
 

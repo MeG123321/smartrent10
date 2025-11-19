@@ -17,7 +17,6 @@ if (!$property_id || !$partner_id) {
     exit;
 }
 
-// sprawdź czy partner i property istnieją
 $stmt = $pdo->prepare("SELECT id,title,owner_id FROM properties WHERE id = :id LIMIT 1");
 $stmt->execute(['id' => $property_id]);
 $prop = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -28,13 +27,11 @@ $stmt->execute(['id'=>$partner_id]);
 $partner = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$partner) { echo "Brak użytkownika."; exit; }
 
-// sprawdź uprawnienia: current user musi być jedna ze stron w rozmowie (może też być owner)
 if (!($me && $partner_id)) {
     echo "Brak uprawnień.";
     exit;
 }
 
-// Obsługa wysłania odpowiedzi
 $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply'])) {
     $body = trim($_POST['body'] ?? '');
@@ -48,15 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply'])) {
             'pid'  => $property_id,
             'body' => $body
         ]);
-        // opcjonalnie: powiadomienie email, activity_log
         admin_log_activity($pdo, $me, 'Wysłano wiadomość', "to:{$partner_id}, property:{$property_id}");
-        // redirect aby uniknąć re-submit
         header("Location: message_detail.php?property_id={$property_id}&partner_id={$partner_id}");
         exit;
     }
 }
 
-// Pobierz wszystkie wiadomości między tymi użytkownikami dotyczące tej oferty
 $stmt = $pdo->prepare("
   SELECT m.*, u_from.name AS from_name, u_to.name AS to_name
   FROM messages m
@@ -69,8 +63,7 @@ $stmt = $pdo->prepare("
 $stmt->execute(['pid'=>$property_id, 'me'=>$me, 'partner'=>$partner_id]);
 $thread = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Dla właściciela oferty: pokaż przycisk przypisz (assign) jeżeli partner jest najemcą (albo chcesz przypisać)
-$canAssign = ($prop['owner_id'] == $me); // właściciel oferty może przypisać
+$canAssign = ($prop['owner_id'] == $me);
 ?>
 <!doctype html>
 <html lang="pl">

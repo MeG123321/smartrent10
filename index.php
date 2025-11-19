@@ -30,7 +30,6 @@ session_start();
     <h2>Wybrane oferty</h2>
     <div class="grid">
       <?php
-      // Pokaż 6 najnowszych
       $stmt = $pdo->query("SELECT id, title, city, price, image FROM properties ORDER BY id DESC LIMIT 6");
       $props = $stmt->fetchAll(PDO::FETCH_ASSOC);
       foreach ($props as $p):

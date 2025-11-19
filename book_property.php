@@ -3,7 +3,6 @@ require_once 'includes/config.php';
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 
-// Start session early
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -18,7 +17,6 @@ if (!$property_id) {
     exit;
 }
 
-// Pobierz informacje o mieszkaniu
 $stmt = $pdo->prepare("SELECT p.*, u.name AS owner_name, u.id AS owner_id 
                        FROM properties p 
                        LEFT JOIN users u ON p.owner_id = u.id 
@@ -34,12 +32,10 @@ if (!$property) {
 $errors = [];
 $success = false;
 
-// Sprawdź, czy użytkownik próbuje zarezerwować własne mieszkanie
 if ($property['owner_id'] == $user_id) {
     $errors[] = "Nie możesz zarezerwować własnego mieszkania.";
 }
 
-// Sprawdź, czy mieszkanie jest już wynajęte
 if ($property['is_rented'] == 1) {
     $errors[] = "To mieszkanie jest już wynajęte.";
 }
@@ -48,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
     $start_date = trim($_POST['start_date'] ?? '');
     $end_date = trim($_POST['end_date'] ?? '');
     
-    // Walidacja dat
     if (empty($start_date) || empty($end_date)) {
         $errors[] = "Proszę podać daty wynajmu.";
     } else {
@@ -65,12 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
         }
     }
     
-    // Jeśli brak błędów, utwórz rezerwację
     if (empty($errors)) {
         try {
             $pdo->beginTransaction();
             
-            // Utwórz wpis w tabeli rentals
             $stmt = $pdo->prepare("INSERT INTO rentals (user_id, property_id, start_date, end_date, price, status, created_at) 
                                    VALUES (:user_id, :property_id, :start_date, :end_date, :price, 'active', NOW())");
             $stmt->execute([
@@ -81,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
                 'price' => $property['price']
             ]);
             
-            // Oznacz mieszkanie jako wynajęte
             $stmt = $pdo->prepare("UPDATE properties SET is_rented = 1 WHERE id = :id");
             $stmt->execute(['id' => $property_id]);
             
@@ -96,7 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
     }
 }
 
-// Helper do formatowania ceny
 if (!function_exists('format_price')) {
     function format_price($amount): string {
         if ($amount === null || $amount === '' || !is_numeric($amount)) return '-';

@@ -22,22 +22,18 @@ if (!$property_id || !$tenant_id) {
     die("Brak danych.");
 }
 
-// Sprawdź czy current user jest właścicielem tej oferty OR is_admin
 $stmt = $pdo->prepare("SELECT owner_id FROM properties WHERE id = :id LIMIT 1");
 $stmt->execute(['id' => $property_id]);
 $prop = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$prop) { die("Brak oferty."); }
 
 if ($prop['owner_id'] != $me && !function_exists('is_admin') || (function_exists('is_admin') && !is_admin())) {
-    // Jeśli brak funkcji is_admin, tylko właściciel ma prawo
     if ($prop['owner_id'] != $me) {
         die("Brak uprawnień do przypisania nieruchomości.");
     }
 }
 
-// Utwórz przypisanie (jeśli nie istnieje aktywne)
 try {
-    // sprawdź czy istnieje już aktywne przypisanie dla tej pary
     $stmt = $pdo->prepare("SELECT id FROM assignments WHERE property_id = :pid AND tenant_id = :tid AND status = 'confirmed' LIMIT 1");
     $stmt->execute(['pid' => $property_id, 'tid' => $tenant_id]);
     $exists = $stmt->fetchColumn();
@@ -50,7 +46,6 @@ try {
     $stmt->execute(['pid' => $property_id, 'tid' => $tenant_id, 'by' => $me]);
     $assignmentId = $pdo->lastInsertId();
 
-    // opcjonalnie: wygeneruj pierwszy wpis płatności (np. miesięczna opłata)
     $stmt = $pdo->prepare("INSERT INTO payments (assignment_id, due_date, amount, status, created_at) VALUES (:aid, DATE_ADD(CURDATE(), INTERVAL 30 DAY), :amt, 'due', NOW())");
     $stmt->execute(['aid' => $assignmentId, 'amt' => (float)($prop['price'] ?? 0.00)]);
 

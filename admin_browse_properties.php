@@ -4,15 +4,12 @@ require_once 'includes/db.php';
 require_once 'includes/auth.php';
 require_once 'includes/admin_functions.php';
 
-// session early (navbar/auth may rely on it)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Admin-only access
 require_role('admin');
 
-// Safety helpers local to this file
 if (!function_exists('shorten')) {
     function shorten(string $text, int $max = 60): string {
         $text = trim($text);
@@ -32,7 +29,6 @@ if (!function_exists('format_price')) {
     }
 }
 
-// Handle property deletion
 $delete_error = '';
 $delete_success = '';
 
@@ -41,34 +37,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_property'])) {
     
     if ($property_id > 0) {
         try {
-            // Start transaction
             $pdo->beginTransaction();
             
-            // Delete associated rentals first
             $stmt = $pdo->prepare("DELETE FROM rentals WHERE property_id = :pid");
             $stmt->execute(['pid' => $property_id]);
             
-            // Delete associated assignments
             $stmt = $pdo->prepare("DELETE FROM assignments WHERE property_id = :pid");
             $stmt->execute(['pid' => $property_id]);
             
-            // Delete associated messages
             $stmt = $pdo->prepare("DELETE FROM messages WHERE property_id = :pid");
             $stmt->execute(['pid' => $property_id]);
             
-            // Delete the property
             $stmt = $pdo->prepare("DELETE FROM properties WHERE id = :pid");
             $stmt->execute(['pid' => $property_id]);
             
-            // Commit transaction
             $pdo->commit();
             
-            // Log activity
             admin_log_activity($pdo, $_SESSION['user_id'] ?? null, 'Usunięto ofertę', "property_id:{$property_id}");
             
             $delete_success = "Nieruchomość została pomyślnie usunięta.";
         } catch (Exception $e) {
-            // Rollback on error
             $pdo->rollBack();
             error_log("Błąd przy usuwaniu nieruchomości: " . $e->getMessage());
             $delete_error = "Wystąpił błąd podczas usuwania nieruchomości.";
@@ -76,12 +64,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_property'])) {
     }
 }
 
-// Input
 $q = trim((string)($_GET['q'] ?? ''));
 $city = trim((string)($_GET['city'] ?? ''));
 $sort = trim((string)($_GET['sort'] ?? ''));
 
-// Build SQL with prepared params - show all properties for admin
 $sql = "SELECT id, title, city, price, image, is_rented, created_at, owner_id FROM properties WHERE 1=1";
 $params = [];
 
@@ -94,7 +80,6 @@ if ($city !== '') {
     $params['city'] = $city;
 }
 
-// Sorting
 switch ($sort) {
     case 'price_asc':
         $sql .= " ORDER BY price ASC";
