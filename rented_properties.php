@@ -7,7 +7,6 @@ require_login();
 
 $user_id = $_SESSION['user_id'];
 
-// Pobierz wszystkie wynajęte mieszkania przez użytkownika z tabeli assignments
 $stmt = $pdo->prepare("
     SELECT a.*, 
            p.title, p.city, p.price, p.image,
@@ -21,7 +20,6 @@ $stmt = $pdo->prepare("
 $stmt->execute(['uid' => $user_id]);
 $rentals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Helper do formatowania ceny
 if (!function_exists('format_price')) {
     function format_price($amount): string {
         if ($amount === null || $amount === '' || !is_numeric($amount)) return '-';
@@ -33,7 +31,6 @@ if (!function_exists('format_price')) {
     }
 }
 
-// Helper do obliczania dni do płatności (30 dni od przypisania)
 if (!function_exists('calculate_days_until_payment')) {
     function calculate_days_until_payment($created_at): array {
         $createdDate = new DateTime($created_at);
@@ -43,7 +40,7 @@ if (!function_exists('calculate_days_until_payment')) {
         $now = new DateTime();
         $diff = $now->diff($paymentDate);
         
-        $daysRemaining = (int)$diff->format('%r%a'); // %r daje znak +/-, %a daje dni
+        $daysRemaining = (int)$diff->format('%r%a');
         
         return [
             'days' => abs($daysRemaining),
@@ -131,7 +128,6 @@ if (!function_exists('calculate_days_until_payment')) {
                   $statusClass = 'status-unknown';
           }
           
-          // Oblicz dni do płatności
           $paymentInfo = calculate_days_until_payment($r['created_at']);
           $paymentClass = 'pending';
           $paymentMessage = '';

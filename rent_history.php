@@ -7,20 +7,16 @@ require_login();
 
 $user_id = $_SESSION['user_id'];
 
-// Check if filtering by property_id (for property owners)
 $property_id = isset($_GET['property_id']) ? intval($_GET['property_id']) : 0;
 
 if ($property_id > 0) {
-    // Verify the user owns this property
     $stmt = $pdo->prepare("SELECT id FROM properties WHERE id = :pid AND owner_id = :uid");
     $stmt->execute(['pid' => $property_id, 'uid' => $user_id]);
     if (!$stmt->fetch()) {
-        // User doesn't own this property
         header('Location: my_properties.php');
         exit;
     }
     
-    // Get rentals for this specific property
     $stmt = $pdo->prepare("SELECT r.*, p.title, p.city, u.name AS renter_name 
                            FROM rentals r 
                            LEFT JOIN properties p ON r.property_id = p.id 
@@ -31,14 +27,12 @@ if ($property_id > 0) {
     $rents = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $title = "Historia wynajmów dla mieszkania";
 } else {
-    // Get all rentals for the user (as renter)
     $stmt = $pdo->prepare("SELECT r.*, p.title, p.city FROM rentals r LEFT JOIN properties p ON r.property_id = p.id WHERE r.user_id = :uid ORDER BY r.created_at DESC");
     $stmt->execute(['uid'=>$user_id]);
     $rents = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $title = "Historia wynajmów";
 }
 
-// Format price helper
 if (!function_exists('format_price')) {
     function format_price($amount): string {
         if ($amount === null || $amount === '' || !is_numeric($amount)) return '-';

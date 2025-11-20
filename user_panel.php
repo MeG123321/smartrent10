@@ -7,7 +7,6 @@ require_login();
 
 $user_id = $_SESSION['user_id'];
 
-// krótkie statystyki użytkownika
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM rentals WHERE user_id = :uid");
 $stmt->execute(['uid'=>$user_id]);
 $totalRentals = (int)$stmt->fetchColumn();
@@ -16,12 +15,10 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM rentals WHERE user_id = :uid AND sta
 $stmt->execute(['uid'=>$user_id]);
 $upcoming = (int)$stmt->fetchColumn();
 
-// Liczba mieszkań posiadanych przez użytkownika
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM properties WHERE owner_id = :uid");
 $stmt->execute(['uid'=>$user_id]);
 $ownedProperties = (int)$stmt->fetchColumn();
 
-// Liczba wynajętych mieszkań przez użytkownika
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM rentals WHERE user_id = :uid AND status = 'active'");
 $stmt->execute(['uid'=>$user_id]);
 $rentedProperties = (int)$stmt->fetchColumn();

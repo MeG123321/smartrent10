@@ -3,12 +3,10 @@ require_once 'includes/config.php';
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
 
-// session early (navbar/auth may rely on it)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Safety helpers local to this file so we don't depend on external helpers
 if (!function_exists('shorten')) {
     function shorten(string $text, int $max = 60): string {
         $text = trim($text);
@@ -18,7 +16,6 @@ if (!function_exists('shorten')) {
 }
 
 if (!function_exists('format_price')) {
-    // Simple PLN formatter (no external helper)
     function format_price($amount): string {
         if ($amount === null || $amount === '' || !is_numeric($amount)) return '-';
         $val = (float)$amount;
@@ -29,12 +26,10 @@ if (!function_exists('format_price')) {
     }
 }
 
-// Input
 $q = trim((string)($_GET['q'] ?? ''));
 $city = trim((string)($_GET['city'] ?? ''));
 $sort = trim((string)($_GET['sort'] ?? ''));
 
-// Build SQL with prepared params - only show available properties
 $sql = "SELECT id, title, city, price, image, created_at FROM properties WHERE is_rented = 0";
 $params = [];
 
@@ -43,12 +38,10 @@ if ($q !== '') {
     $params['q'] = '%' . $q . '%';
 }
 if ($city !== '') {
-    // keep exact match as original, but use parameterized value
     $sql .= " AND city = :city";
     $params['city'] = $city;
 }
 
-// Sorting
 switch ($sort) {
     case 'price_asc':
         $sql .= " ORDER BY price ASC";
@@ -68,8 +61,6 @@ try {
     $stmt->execute($params);
     $props = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // in dev show error; in production log and show friendly message
-    // for now output a readable error so you can debug
     http_response_code(500);
     echo "<h2>Błąd serwera</h2><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
     exit;
@@ -107,14 +98,11 @@ try {
     <div class="grid">
       <?php foreach ($props as $p): ?>
         <?php
-          // sanitize/prepare image URL
           if (!empty($p['image'])) {
-              // rawurlencode filename to avoid breaking URL, but keep path readable
               $imgSrc = 'uploads/properties/' . rawurlencode($p['image']);
           } else {
               $imgSrc = 'assets/img/placeholder.png';
           }
-          // escape for output
           $imgSrcEsc = htmlspecialchars($imgSrc, ENT_QUOTES);
           $title = htmlspecialchars($p['title'] ?? '', ENT_QUOTES);
           $cityOut = htmlspecialchars($p['city'] ?? '', ENT_QUOTES);

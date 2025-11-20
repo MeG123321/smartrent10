@@ -10,8 +10,6 @@ if (!is_logged_in()) {
 }
 $me = $_SESSION['user_id'];
 
-// Pobierz ostatnie wiadomości / konwersacje powiązane z użytkownikiem
-// Grupujemy po property + partner (inny user), wybieramy najnowszą wiadomość
 try {
     $sql = "
       SELECT m.*, 
@@ -44,7 +42,6 @@ try {
   <?php else: ?>
     <ul class="message-list">
       <?php foreach ($msgs as $m): 
-         // partner = other user
          $partnerId = ($m['from_user_id'] == $me) ? $m['to_user_id'] : $m['from_user_id'];
          $partnerName = ($m['from_user_id'] == $me) ? ($m['to_name'] ?? 'Użytkownik') : ($m['from_name'] ?? 'Użytkownik');
          $propertyId = $m['property_id'];

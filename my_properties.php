@@ -7,7 +7,6 @@ require_login();
 
 $user_id = $_SESSION['user_id'];
 
-// Pobierz wszystkie mieszkania użytkownika z liczbą wynajmów
 $stmt = $pdo->prepare("
     SELECT p.*, 
            COUNT(r.id) AS rental_count,
@@ -21,7 +20,6 @@ $stmt = $pdo->prepare("
 $stmt->execute(['uid' => $user_id]);
 $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Policz nieruchomości według statusu
 $available_count = 0;
 $rented_count = 0;
 foreach ($properties as $p) {
@@ -32,7 +30,6 @@ foreach ($properties as $p) {
     }
 }
 
-// Helper do formatowania ceny
 if (!function_exists('format_price')) {
     function format_price($amount): string {
         if ($amount === null || $amount === '' || !is_numeric($amount)) return '-';
