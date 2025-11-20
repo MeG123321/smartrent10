@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Bezpośrednie połączenie do bazy
 $host = 'localhost';
 $db = 'smartrent';
 $user = 'root';
@@ -14,7 +13,6 @@ try {
     die("Błąd połączenia: " . $e->getMessage());
 }
 
-// Sprawdzenie czy user jest zalogowany
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
@@ -22,7 +20,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Pobranie wynajęć użytkownika z tabeli assignments
 $sql = "SELECT a.*, p.title, p.city, p.price, u.name as owner_name 
         FROM assignments a
         JOIN properties p ON a.property_id = p.id
@@ -35,15 +32,12 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute([$user_id]);
 $rentals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Ustawienie headers dla CSV
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="moje_wynajecia_' . date('Y-m-d') . '.csv"');
 
-// Otwarcie outputu
 $output = fopen('php://output', 'w');
-fwrite($output, "\xEF\xBB\xBF"); // UTF-8 BOM dla Excel
+fwrite($output, "\xEF\xBB\xBF");
 
-// Nagłówki CSV
 fputcsv($output, array(
     'ID Przypisania',
     'Mieszkanie',
@@ -56,12 +50,10 @@ fputcsv($output, array(
     'Data przypisania'
 ), ';');
 
-// Dane wynajęć
 foreach ($rentals as $rental) {
     $start_date = $rental['start_date'] ? date('Y-m-d', strtotime($rental['start_date'])) : 'brak';
     $end_date = $rental['end_date'] ? date('Y-m-d', strtotime($rental['end_date'])) : 'brak';
     
-    // Oblicz liczbę dni tylko jeśli obie daty są ustawione
     $days = '-';
     if ($rental['start_date'] && $rental['end_date']) {
         $start = new DateTime($rental['start_date']);

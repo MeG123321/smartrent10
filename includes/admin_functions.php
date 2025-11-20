@@ -1,11 +1,7 @@
 <?php
-// Funkcje pomocnicze dla panelu administratora
 
 require_once __DIR__ . '/db.php';
 
-/**
- * Pobierz podstawowe statystyki systemu
- */
 function admin_get_stats(PDO $pdo): array {
     $totalUsers = (int)$pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
     $totalProperties = (int)$pdo->query("SELECT COUNT(*) FROM properties")->fetchColumn();
@@ -19,9 +15,6 @@ function admin_get_stats(PDO $pdo): array {
     ];
 }
 
-/**
- * Najnowsze rekordy (użytkownicy, oferty, rezerwacje)
- */
 function admin_get_recent(PDO $pdo, int $limit = 6): array {
     $users = $pdo->query("SELECT id,name,email,role,created_at FROM users ORDER BY created_at DESC LIMIT $limit")->fetchAll(PDO::FETCH_ASSOC);
     $props = $pdo->query("SELECT id,title,city,price,created_at FROM properties ORDER BY created_at DESC LIMIT $limit")->fetchAll(PDO::FETCH_ASSOC);
@@ -31,10 +24,6 @@ function admin_get_recent(PDO $pdo, int $limit = 6): array {
     return ['users'=>$users,'properties'=>$props,'rentals'=>$rents];
 }
 
-/**
- * Generuj raport przychodów i liczby rezerwacji w zadanym okresie
- * zwraca tablicę: total_revenue, total_rentals, by_property (top)
- */
 function admin_generate_report(PDO $pdo, string $from=null, string $to=null): array {
     $where = "1=1";
     $params = [];
@@ -59,9 +48,6 @@ function admin_generate_report(PDO $pdo, string $from=null, string $to=null): ar
     return ['summary'=>$summary,'by_property'=>$by_property];
 }
 
-/**
- * Pobierz logi aktywności (activity_logs)
- */
 function admin_get_logs(PDO $pdo, int $limit = 200): array {
     $stmt = $pdo->prepare("SELECT l.*, u.name AS actor_name, u.email AS actor_email
                            FROM activity_logs l
@@ -73,17 +59,11 @@ function admin_get_logs(PDO $pdo, int $limit = 200): array {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-/**
- * Zapisz log aktywności
- */
 function admin_log_activity(PDO $pdo, ?int $actorId, string $action, ?string $meta = null) {
     $stmt = $pdo->prepare("INSERT INTO activity_logs (actor_id, action, meta, created_at) VALUES (:actor, :action, :meta, NOW())");
     $stmt->execute(['actor'=>$actorId,'action'=>$action,'meta'=>$meta]);
 }
 
-/**
- * Eksportuj raport do CSV (wyślij nagłówki i echo)
- */
 function admin_export_report_csv(array $by_property, array $summary, string $filename = 'report.csv') {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="'.$filename.'"');

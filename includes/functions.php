@@ -1,5 +1,4 @@
 <?php
-// Funkcje pomocnicze UI i formatowania
 function shorten($text, $len = 80) {
     if (mb_strlen($text) <= $len) return $text;
     return mb_substr($text,0,$len-3) . '...';

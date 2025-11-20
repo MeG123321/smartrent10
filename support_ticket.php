@@ -20,14 +20,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['uid'=>$user_id,'sub'=>$subject,'msg'=>$message]);
         $ticketId = (int)$pdo->lastInsertId();
 
-        // log akcji
         admin_log_activity($pdo, $user_id, 'Utworzono zgłoszenie support', "ticket_id:{$ticketId}, subject: {$subject}");
 
         $success = "Zgłoszenie zostało utworzone. Otrzymasz powiadomienie e-mail gdy zostanie obsłużone.";
     }
 }
 
-// formularz
 ?>
 <!doctype html>
 <html lang="pl">

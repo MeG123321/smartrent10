@@ -15,7 +15,6 @@ if ($from || $to) {
     $to_date = $to ? $to . ' 23:59:59' : date('Y-m-d 23:59:59');
     
     try {
-        // Główny raport
         $sql = "SELECT 
                     a.id,
                     a.property_id,
@@ -43,7 +42,6 @@ if ($from || $to) {
         ]);
         $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Podsumowanie całości
         $summary_sql = "SELECT 
                             COUNT(*) as total_assignments,
                             SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as active_rentals,
@@ -60,7 +58,6 @@ if ($from || $to) {
         ]);
         $summary = $stmt_summary->fetch(PDO::FETCH_ASSOC);
         
-        // Popularność miast
         $cities_sql = "SELECT 
                             p.city,
                             COUNT(a.id) as count
@@ -90,7 +87,6 @@ if ($from || $to) {
             'top_cities' => $top_cities
         ];
         
-        // Eksport CSV
         if (!empty($_GET['export']) && $_GET['export'] === 'csv') {
             admin_export_report_csv_assignments($report['by_property'], $report['summary'], 'raport_przypisania_'.$from.'_'.$to.'.csv');
         }

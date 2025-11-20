@@ -18,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($password !== $password2) {
         $errors[] = "Hasła nie są identyczne.";
     } else {
-        // Sprawdź czy email zajęty
         $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email LIMIT 1");
         $stmt->execute(['email' => $email]);
         if ($stmt->fetch()) {

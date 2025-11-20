@@ -10,7 +10,6 @@ $me = $_SESSION['user_id'];
 $id = intval($_GET['id'] ?? 0);
 if (!$id) { echo "Brak id przypisania"; exit; }
 
-// Pobierz przypisanie i sprawdź uprawnienia (owner lub admin lub tenant)
 $stmt = $pdo->prepare("SELECT a.*, p.title AS property_title, p.owner_id, u.name AS tenant_name, u.email AS tenant_email, p.price AS rent_price FROM assignments a JOIN properties p ON a.property_id = p.id LEFT JOIN users u ON a.tenant_id = u.id WHERE a.id = :id LIMIT 1");
 $stmt->execute(['id'=>$id]);
 $assign = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -22,12 +21,10 @@ if ($assign['tenant_id'] == $me) $canView = true;
 if ($assign['owner_id'] == $me) $canView = true;
 if (!$canView) { echo "Brak uprawnień"; exit; }
 
-// Pobierz płatności powiązane z przypisaniem
 $stmt = $pdo->prepare("SELECT * FROM payments WHERE assignment_id = :aid ORDER BY due_date ASC");
 $stmt->execute(['aid'=>$id]);
 $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Pobierz zgłoszenia maintenance
 $stmt = $pdo->prepare("SELECT * FROM maintenance_reports WHERE assignment_id = :aid ORDER BY created_at DESC");
 $stmt->execute(['aid'=>$id]);
 $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);

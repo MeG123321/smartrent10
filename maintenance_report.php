@@ -9,7 +9,6 @@ $me = $_SESSION['user_id'];
 $assignment_id = intval($_GET['assignment_id'] ?? 0);
 $property_id = intval($_GET['property_id'] ?? 0);
 
-// jeśli mamy tylko przypisanie, pobierz property_id z assignments
 if ($assignment_id && !$property_id) {
     $stmt = $pdo->prepare("SELECT property_id FROM assignments WHERE id = :id LIMIT 1");
     $stmt->execute(['id'=>$assignment_id]);
@@ -17,7 +16,6 @@ if ($assignment_id && !$property_id) {
     $property_id = $row['property_id'] ?? 0;
 }
 
-// obsługa formularza
 $errors = [];
 $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

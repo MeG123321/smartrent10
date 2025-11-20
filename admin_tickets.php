@@ -1,5 +1,4 @@
 <?php
-// Proste zarządzanie zgłoszeniami support (panel admina)
 require_once 'includes/config.php';
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
@@ -30,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// lista zgłoszeń
 $stmt = $pdo->query("SELECT t.*, u.name AS user_name, a.name AS assigned_name
                      FROM support_tickets t
                      LEFT JOIN users u ON t.user_id = u.id
@@ -38,7 +36,6 @@ $stmt = $pdo->query("SELECT t.*, u.name AS user_name, a.name AS assigned_name
                      ORDER BY t.created_at DESC LIMIT 500");
 $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// lista adminów do przypisania
 $admins = $pdo->query("SELECT id,name,email FROM users WHERE role = 'admin' ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!doctype html>

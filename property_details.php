@@ -2,7 +2,6 @@
 require_once 'includes/config.php';
 require_once 'includes/db.php';
 
-// start session early so includes/auth.php can use it
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -10,14 +9,12 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once 'includes/auth.php';
 require_once 'includes/admin_functions.php';
 
-// Pobierz id oferty
 $id = intval($_GET['id'] ?? 0);
 if (!$id) {
     header('Location: property_list.php');
     exit;
 }
 
-// Pobierz ofertę
 $stmt = $pdo->prepare("SELECT p.*, u.name AS owner_name, u.email AS owner_email, u.id AS owner_id FROM properties p LEFT JOIN users u ON p.owner_id = u.id WHERE p.id = :id LIMIT 1");
 $stmt->execute(['id' => $id]);
 $prop = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -26,7 +23,6 @@ if (!$prop) {
     exit;
 }
 
-// Format ceny bez zewnętrznego helpera (PLN)
 $display_price = '-';
 if (isset($prop['price']) && is_numeric($prop['price'])) {
     $val = (float)$prop['price'];
@@ -37,16 +33,10 @@ if (isset($prop['price']) && is_numeric($prop['price'])) {
     }
 }
 
-/*
-  ZAMIANA: Usunięto mechanizm rezerwacji datami.
-  Dodano prosty formularz do wysyłania wiadomości do właściciela.
-*/
-
 $msg_errors = [];
 $msg_success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
-    // Wysyłanie wiadomości do właściciela (tylko dla zalogowanych)
     if (!is_logged_in()) {
         $msg_errors[] = "Musisz być zalogowany, aby wysłać wiadomość do właściciela.";
     } else {
@@ -76,11 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
                     'body' => $body
                 ]);
 
-                // Log aktywności (opcjonalne)
                 admin_log_activity($pdo, $from_user, 'Wysłano wiadomość do właściciela', "property_id:{$id}, to_user:{$to_user}");
 
                 $msg_success = "Wiadomość została wysłana do właściciela.";
-                // wyczyść textarea po sukcesie
                 $_POST['message'] = '';
             } catch (Exception $e) {
                 error_log("Błąd przy zapisie wiadomości: " . $e->getMessage());

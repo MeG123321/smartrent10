@@ -7,14 +7,11 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 if (!is_logged_in()) { header('Location: login.php'); exit; }
 $me = $_SESSION['user_id'];
 
-// Pokaż przypisania związane z użytkownikiem (jako właściciel nieruchomości lub admin)
 try {
-    // jeśli admin pokaż wszystko
     if (function_exists('is_admin') && is_admin()) {
         $stmt = $pdo->query("SELECT a.*, p.title AS property_title, u.name AS tenant_name FROM assignments a LEFT JOIN properties p ON a.property_id = p.id LEFT JOIN users u ON a.tenant_id = u.id ORDER BY a.created_at DESC");
         $assignments = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } else {
-        // tylko przypisania gdzie current user jest owner of property
         $stmt = $pdo->prepare("SELECT a.*, p.title AS property_title, u.name AS tenant_name
             FROM assignments a
             JOIN properties p ON a.property_id = p.id

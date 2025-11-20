@@ -1,9 +1,4 @@
 <?php
-// messages.php
-// Lista konwersacji + chat w jednym widoku.
-// W tym pliku wymuszamy rozmiary miniatur i szerokość lewego panelu inline-ami,
-// aby nadpisać reguły z assets/css/style.css, które mają większy priorytet.
-
 require_once 'includes/config.php';
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
@@ -20,7 +15,6 @@ if (!$user_id) {
 $errors = [];
 $success = '';
 
-// POST: odpowiedź w wątku
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply'])) {
     $property_id = intval($_POST['property_id'] ?? 0);
     $partner_id = intval($_POST['partner_id'] ?? 0);
@@ -40,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply'])) {
     }
 }
 
-// POST: przypisanie mieszkania
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign'])) {
     $property_id = intval($_POST['property_id'] ?? 0);
     $tenant_id = intval($_POST['tenant_id'] ?? 0);
@@ -59,11 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign'])) {
             try {
                 $pdo->beginTransaction();
                 
-                // 1. Ustaw is_rented=1 dla properties (zmiana statusu na niedostępne)
                 $upd = $pdo->prepare("UPDATE properties SET is_rented = 1 WHERE id = :pid");
                 $upd->execute(['pid'=>$property_id]);
                 
-                // 2. Dodaj wpis do tabeli assignments dla najemcy (dodanie do "Moje wynajęte mieszkania")
                 $ins = $pdo->prepare("INSERT INTO assignments (property_id, tenant_id, assigned_by, status, created_at) VALUES (:pid, :tid, :by, 'confirmed', NOW())");
                 $ins->execute([
                     'pid' => $property_id,
@@ -75,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign'])) {
                 
                 $pdo->commit();
                 
-                // 3. Redirect do panelu użytkownika (zamiast management_assignment.php)
                 header("Location: user_panel.php?assigned=success");
                 exit;
                 
@@ -87,7 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign'])) {
     }
 }
 
-// Pobierz wiadomości i miniaturekę oferty
 try {
     $stmt = $pdo->prepare("SELECT m.*, u_from.name AS from_name, u_to.name AS to_name, p.title AS property_title, p.image AS property_image
                            FROM messages m
@@ -127,7 +116,6 @@ try {
     $conversations = [];
 }
 
-// Pobierz wątek jeśli wskazano konwersację
 $activePartner = intval($_GET['partner_id'] ?? 0);
 $activeProperty = intval($_GET['property_id'] ?? 0);
 $thread = [];
@@ -273,7 +261,6 @@ function fmt_dt($dt) {
         </div>
 
         <script>
-          // Scrolluj chat do dołu po załadowaniu
           document.addEventListener('DOMContentLoaded', function(){
             var chat = document.getElementById('chatBox');
             if (chat) { chat.scrollTop = chat.scrollHeight; }

@@ -8,7 +8,6 @@ require_role('admin');
 
 $id = intval($_GET['id'] ?? 0);
 if ($id) {
-    // logujemy przed kasowaniem (przydatne do audytu)
     admin_log_activity($pdo, $_SESSION['user_id'] ?? null, 'Usunięto ofertę', "property_id:{$id}");
     $stmt = $pdo->prepare("DELETE FROM properties WHERE id = :id");
     $stmt->execute(['id'=>$id]);

@@ -4,7 +4,6 @@ require_once 'includes/db.php';
 require_once 'includes/auth.php';
 session_start();
 
-// Require login
 require_login();
 
 $id = intval($_GET['id'] ?? 0);
@@ -13,7 +12,6 @@ if (!$id) {
     exit;
 }
 
-// Get property details
 $stmt = $pdo->prepare("SELECT * FROM properties WHERE id = :id LIMIT 1");
 $stmt->execute(['id'=>$id]);
 $prop = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -23,12 +21,10 @@ if (!$prop) {
     exit;
 }
 
-// Check permission: owner or admin
 $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 $is_owner = isset($_SESSION['user_id']) && $_SESSION['user_id'] == $prop['owner_id'];
 
 if (!$is_admin && !$is_owner) {
-    // Access denied
     http_response_code(403);
     ?>
     <!doctype html>
@@ -79,12 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("UPDATE properties SET title=:t,description=:d,price=:p,city=:c,image=:i WHERE id=:id");
             $stmt->execute(['t'=>$title,'d'=>$desc,'p'=>$price,'c'=>$city,'i'=>$imageName,'id'=>$id]);
 
-            // Log activity if admin functions exist
             if (function_exists('admin_log_activity')) {
                 admin_log_activity($pdo, $_SESSION['user_id'] ?? null, 'Edytowano ofertę', "property_id:{$id}, title: " . $title);
             }
 
-            // Redirect based on role
             if ($is_admin) {
                 header('Location: admin_browse_properties.php');
             } else {

@@ -5,7 +5,6 @@ require_once 'includes/auth.php';
 session_start();
 require_role('admin');
 
-// Obsługa usuwania użytkownika
 $message = '';
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
@@ -13,7 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
     
     if ($user_id_to_delete) {
         try {
-            // Sprawdź czy użytkownik nie próbuje usunąć samego siebie
             if ($user_id_to_delete == $_SESSION['user_id']) {
                 $error = "Nie możesz usunąć samego siebie.";
             } else {
@@ -27,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
     }
 }
 
-// prosty listing wszystkich użytkowników
 $stmt = $pdo->query("SELECT id,name,email,role,created_at FROM users ORDER BY id DESC");
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>

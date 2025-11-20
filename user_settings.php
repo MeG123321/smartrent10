@@ -9,7 +9,6 @@ $user_id = $_SESSION['user_id'];
 $errors = [];
 $success = '';
 
-// Pobierz dane użytkownika
 $stmt = $pdo->prepare("SELECT id, name, email FROM users WHERE id = :id");
 $stmt->execute(['id' => $user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -18,7 +17,6 @@ if (!$user) {
     die('Użytkownik nie znaleziony.');
 }
 
-// Zmiana hasła
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     $old_password = $_POST['old_password'] ?? '';
     $new_password = $_POST['new_password'] ?? '';
@@ -31,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     } elseif (strlen($new_password) < 6) {
         $errors[] = "Hasło musi mieć co najmniej 6 znaków.";
     } else {
-        // Sprawdź stare hasło
         $stmt = $pdo->prepare("SELECT password FROM users WHERE id = :id");
         $stmt->execute(['id' => $user_id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -50,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     }
 }
 
-// Zmiana profilu (imię i nazwisko)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_profile'])) {
     $name = trim($_POST['name'] ?? '');
     
@@ -65,7 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_profile'])) {
         admin_log_activity($pdo, $user_id, 'Zmiana profilu', 'Użytkownik zaktualizował profil');
         $success = "Profil został zaktualizowany pomyślnie!";
         
-        // Odśwież dane użytkownika
         $stmt = $pdo->prepare("SELECT id, name, email FROM users WHERE id = :id");
         $stmt->execute(['id' => $user_id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);

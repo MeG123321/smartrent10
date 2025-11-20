@@ -9,6 +9,5 @@ $options = [
 try {
     $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
 } catch (PDOException $e) {
-    // W środowisku produkcyjnym loguj błąd zamiast wyświetlać
     die("Błąd połączenia z bazą danych: " . $e->getMessage());
 }

@@ -16,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$title || !$city || $price <= 0) {
         $errors[] = "Wypełnij pola: tytuł, miasto, cena.";
     } else {
-        // upload image
         $imageName = null;
         if (!empty($_FILES['image']['name'])) {
             $f = $_FILES['image'];
